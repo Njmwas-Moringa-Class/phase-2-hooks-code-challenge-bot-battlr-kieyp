@@ -1,78 +1,47 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import YourBotArmy from "./YourBotArmy";
+import BotCollection from "./BotCollection";
 
-const botTypeClasses = {
-  Assault: "icon military",
-  Defender: "icon shield",
-  Support: "icon plus circle",
-  Medic: "icon ambulance",
-  Witch: "icon magic",
-  Captain: "icon star",
-};
+function BotsPage() {
+  const [bots, setBots] = useState([]);
 
-function BotSpecs({ bot }) {
+  const fetchData = async () => {
+    try {
+      const resp = await fetch("http://localhost:8002/bots");
+      const data = await resp.json();
+      setBots(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const updateBotStatus = (bot, armyStatus) => {
+    setBots((prevBots) =>
+      prevBots.map((b) => (b.id === bot.id ? { ...b, army: armyStatus } : b))
+    );
+  };
+
+  const enlistBot = (bot) => updateBotStatus(bot, true);
+
+  const removeBot = (bot) => updateBotStatus(bot, false);
+
+  const deleteBot = (bot) => {
+    const updatedBots = bots.filter((b) => b.id !== bot.id);
+    setBots(updatedBots);
+  };
+
+  const armyBots = bots.filter((b) => b.army);
+
   return (
-    <div className="ui segment">
-      <div className="ui two column centered grid">
-        <div className="row">
-          <div className="four wide column">
-            <img
-              alt="oh no!"
-              className="ui medium circular image bordered"
-              src={bot.avatar_url}
-            />
-          </div>
-          <div className="four wide column">
-            <h2>Name: {bot.name}</h2>
-            <p>
-              <strong>Catchphrase: </strong>
-              {bot.catchphrase}
-            </p>
-            <strong>
-              Class: {bot.bot_class}
-              <i className={botTypeClasses[bot.bot_class]} />
-            </strong>
-            <br />
-            <div className="ui segment">
-              <div className="ui three column centered grid">
-                <div className="row">
-                  <div className="column">
-                    <i className="icon large circular red heartbeat" />
-                    <strong>{bot.health}</strong>
-                  </div>
-                  <div className="column">
-                    <i className="icon large circular yellow lightning" />
-                    <strong>{bot.damage}</strong>
-                  </div>
-                  <div className="column">
-                    <i className="icon large circular blue shield" />
-                    <strong>{bot.armor}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <button
-              className="ui button fluid"
-              onClick={() =>
-                console.log("connect this to a function that shows all bots")
-              }
-            >
-              Go Back
-            </button>
-            <button
-              className="ui button fluid"
-              onClick={() =>
-                console.log(
-                  "connect this to a function that adds this bot to your bot army list"
-                )
-              }
-            >
-              Enlist
-            </button>
-          </div>
-        </div>
-      </div>
+    <div>
+      <YourBotArmy bots={armyBots} removeBot={removeBot} deleteBot={deleteBot} />
+      <BotCollection bots={bots} enlistBot={enlistBot} deleteBot={deleteBot} />
     </div>
   );
 }
 
-export default BotSpecs;
+export default BotsPage;

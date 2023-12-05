@@ -3,34 +3,41 @@ import YourBotArmy from "./YourBotArmy";
 import BotCollection from "./BotCollection";
 
 function BotsPage() {
-  //start here with your code for step one
   const [bots, setBots] = useState([]);
 
-  //a utility function to fetch data from the server
-  async function fetchData() {
-    const resp = await fetch(`http://localhost:8002/bots`);
-    const data = await resp.json();
-    setBots(data);
-  }
-  //run fetch whenever the page loads
+  const fetchData = async () => {
+    try {
+      const resp = await fetch(`http://localhost:8002/bots`);
+      const data = await resp.json();
+      setBots(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  //add bot to army when the bot is clicked
+  const updateBotStatus = (bot, armyStatus) => {
+    setBots((prevBots) =>
+      prevBots.map((b) => (b.id === bot.id ? { ...b, army: armyStatus } : b))
+    );
+  };
 
-  function enlistBot(bot) {
-    setBots(bots.map((b) => (b.id === bot.id ? { ...b, army: true } : b)));
-  }
+  const enlistBot = (bot) => {
+    updateBotStatus(bot, true);
+  };
 
-  function removeBot(bot) {
-    setBots(bots.map((b) => (b.id === bot.id ? { ...b, army: false } : b)));
-  }
+  const removeBot = (bot) => {
+    updateBotStatus(bot, false);
+  };
 
-  function deleteBot(bot) {
-    const deletedBot = bots.filter((b) => b.id !== bot.id);
-    setBots((bots) => deletedBot);
-  }
+  const deleteBot = (bot) => {
+    const updatedBots = bots.filter((b) => b.id !== bot.id);
+    setBots(updatedBots);
+  };
+
   return (
     <div>
       <YourBotArmy
